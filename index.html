@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WattzGOAT — Learn web application security by breaking it</title>
+<meta name="description" content="WattzGOAT is an open-source, deliberately vulnerable electricity utility portal with 48 flags across 17 categories, guided hints, and vulnerable-vs-fixed code views. Built for CTFs, workshops, and classrooms.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<style>
+  :root{
+    --ink:#14181C;
+    --ink-700:#2A323A;
+    --accent:#F4B41A;
+    --accent-100:#FDF1CE;
+    --accent-700:#8F5F00;
+    --canvas:#F2EFE9;
+    --white:#FFFFFF;
+    --gray-600:#4B5563;
+    --gray-500:#6B7280;
+    --gray-200:#E5E7EB;
+    --shadow-card: 0 1px 2px rgba(20,24,28,0.04), 0 8px 24px -8px rgba(20,24,28,0.10);
+    --shadow-lift: 0 2px 4px rgba(20,24,28,0.06), 0 16px 32px -12px rgba(20,24,28,0.18);
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; scroll-padding-top: 84px; }
+  body{
+    margin:0;
+    font-family:var(--font);
+    background:var(--canvas);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+  }
+  img{ max-width:100%; display:block; }
+  a{ color:inherit; }
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 24px; }
+
+  /* ---------- Header ---------- */
+  header.site{
+    position:sticky; top:0; z-index:40;
+    background:rgba(20,24,28,0.95);
+    -webkit-backdrop-filter:blur(8px);
+    backdrop-filter:blur(8px);
+    box-shadow:var(--shadow-lift);
+    color:#fff;
+  }
+  .nav{
+    max-width:1180px; margin:0 auto; padding:0 24px;
+    height:64px;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:16px;
+  }
+  .brand{ display:flex; align-items:center; gap:8px; text-decoration:none; flex-shrink:0; }
+  .brand svg{ width:26px; height:26px; }
+  .brand .word{ font-size:18px; font-weight:600; color:#fff; }
+  .brand .word b{ color:var(--accent); font-weight:700; }
+  .nav-links{ display:flex; align-items:center; gap:28px; flex:1; justify-content:center; }
+  .nav-links a{
+    text-decoration:none; color:rgba(255,255,255,0.82); font-size:14.5px; font-weight:500;
+    transition:color .15s;
+  }
+  .nav-links a:hover{ color:#fff; }
+  .nav-cta{ flex-shrink:0; }
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:7px;
+    border-radius:8px; padding:9px 16px; font-size:14px; font-weight:600;
+    text-decoration:none; border:none; cursor:pointer;
+    transition:filter .15s, transform .05s, background .15s;
+    font-family:var(--font);
+  }
+  .btn:active{ transform:translateY(1px); }
+  .btn-accent{ background:var(--accent); color:var(--ink); }
+  .btn-accent:hover{ filter:brightness(0.96); }
+  .btn-dark{ background:var(--ink); color:#fff; }
+  .btn-dark:hover{ background:var(--ink-700); }
+  .btn-ghost-dark{ background:rgba(255,255,255,0.08); color:#fff; border:1px solid rgba(255,255,255,0.25); }
+  .btn-ghost-dark:hover{ background:rgba(255,255,255,0.14); }
+  .btn-outline{ background:#fff; color:var(--ink); border:1px solid var(--gray-200); }
+  .btn-outline:hover{ background:#FAFAF9; }
+
+  /* ---------- Hero ---------- */
+  .hero{ padding:88px 0 72px; }
+  .hero-grid{
+    display:grid; grid-template-columns:1.05fr 1fr; gap:56px; align-items:center;
+  }
+  .eyebrow{
+    font-size:12.5px; font-weight:700; letter-spacing:.09em; text-transform:uppercase;
+    color:var(--accent-700); margin:0 0 16px;
+  }
+  .eyebrow.on-dark{ color:var(--accent); }
+  h1.hero-head{
+    font-size:50px; line-height:1.08; font-weight:800; letter-spacing:-0.015em;
+    margin:0 0 20px; max-width:620px;
+  }
+  .hero-sub{
+    font-size:18px; line-height:1.6; color:var(--gray-600); max-width:540px; margin:0 0 32px;
+  }
+  .hero-ctas{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:40px; }
+  .hero-ctas .btn{ padding:12px 22px; font-size:15px; }
+
+  .hero-visual{
+    background:#fff; border-radius:20px; box-shadow:var(--shadow-lift);
+    padding:10px; position:relative;
+    animation:fadeUp .7s ease-out both;
+  }
+  .hero-visual .chrome{
+    display:flex; gap:6px; padding:6px 8px 12px;
+  }
+  .chrome span{ width:9px; height:9px; border-radius:50%; background:var(--gray-200); }
+  .hero-visual img{ border-radius:10px; display:block; }
+
+  @keyframes fadeUp{
+    0%{ opacity:0; transform:translateY(14px); }
+    100%{ opacity:1; transform:translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .hero-visual{ animation:none; }
+  }
+
+  /* ---------- Stat strip ---------- */
+  .stats{ padding:0 0 88px; }
+  .stat-grid{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:16px;
+  }
+  .stat{
+    background:#fff; border-radius:16px; padding:22px 22px 20px;
+    box-shadow:var(--shadow-card); border:1px solid rgba(20,24,28,0.05);
+  }
+  .stat .val{ font-size:28px; font-weight:800; letter-spacing:-0.01em; }
+  .stat .lbl{ margin-top:4px; font-size:14px; color:var(--gray-500); }
+
+  /* ---------- Features ---------- */
+  .feature{ padding:64px 0; }
+  .f-text{ max-width:640px; margin:0 0 32px; }
+  .f-text h2{
+    font-size:30px; line-height:1.2; font-weight:800; letter-spacing:-0.01em; margin:0 0 14px;
+  }
+  .f-text p{ font-size:16.5px; line-height:1.7; color:var(--gray-600); margin:0; }
+  .f-visual{
+    background:#fff; border-radius:18px; box-shadow:var(--shadow-card);
+    border:1px solid rgba(20,24,28,0.05);
+    padding:10px; overflow:hidden;
+  }
+  .f-visual img{ border-radius:10px; width:100%; }
+
+  .divider{ border:none; border-top:1px solid rgba(20,24,28,0.08); margin:0; }
+
+  /* ---------- Use cases ---------- */
+  .usecases{ padding:80px 0; }
+  .usecases-head{ max-width:560px; margin-bottom:40px; }
+  .usecases-head h2{ font-size:30px; font-weight:800; letter-spacing:-0.01em; margin:0 0 10px; }
+  .usecases-head p{ font-size:16.5px; color:var(--gray-600); line-height:1.6; margin:0; }
+  .uc-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+  .uc-card{
+    background:#fff; border-radius:16px; padding:22px;
+    box-shadow:var(--shadow-card); border:1px solid rgba(20,24,28,0.05);
+  }
+  .uc-card .ic{
+    width:38px; height:38px; border-radius:10px; background:var(--accent-100);
+    display:flex; align-items:center; justify-content:center; color:var(--ink); margin-bottom:14px;
+  }
+  .uc-card h3{ font-size:16px; font-weight:700; margin:0 0 8px; }
+  .uc-card p{ font-size:14px; line-height:1.55; color:var(--gray-500); margin:0; }
+
+  /* ---------- Quick start ---------- */
+  .quickstart{ background:var(--ink); color:#fff; padding:76px 0; }
+  .qs-grid{ display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:start; }
+  .qs-grid h2{ font-size:30px; font-weight:800; letter-spacing:-0.01em; margin:0 0 14px; }
+  .qs-grid p{ font-size:16px; line-height:1.65; color:rgba(255,255,255,0.72); margin:0 0 22px; max-width:440px; }
+  .qs-link{
+    font-size:14.5px; font-weight:600; color:var(--accent); text-decoration:none;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .qs-link:hover{ text-decoration:underline; }
+  pre.code{
+    background:#1E242B; border:1px solid rgba(255,255,255,0.08); border-radius:12px;
+    padding:20px; font-size:13px; line-height:1.7; overflow-x:auto;
+    font-family:'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    color:#E7ECF1; margin:0;
+  }
+  pre.code .cmt{ color:#8A95A1; }
+  pre.code .flag{ color:var(--accent); }
+
+  /* ---------- Footer ---------- */
+  footer.site{ background:var(--ink); color:rgba(255,255,255,0.65); padding:0 0 40px; }
+  .footer-top{
+    border-top:1px solid rgba(255,255,255,0.1);
+    padding:40px 0 32px;
+    display:flex; justify-content:space-between; align-items:flex-start; gap:24px; flex-wrap:wrap;
+  }
+  .footer-brand{ display:flex; align-items:center; gap:8px; }
+  .footer-brand svg{ width:22px; height:22px; }
+  .footer-brand span{ font-size:16px; font-weight:600; color:#fff; }
+  .footer-brand span b{ color:var(--accent); }
+  .footer-links{ display:flex; gap:28px; flex-wrap:wrap; }
+  .footer-links a{ color:rgba(255,255,255,0.7); text-decoration:none; font-size:14px; }
+  .footer-links a:hover{ color:#fff; }
+  .footer-bottom{
+    padding-top:24px; display:flex; justify-content:space-between; align-items:center;
+    flex-wrap:wrap; gap:10px; font-size:13px; color:rgba(255,255,255,0.45);
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:980px){
+    .hero-grid, .feature-grid, .qs-grid{ grid-template-columns:1fr; }
+    .feature-grid.reverse .f-text, .feature-grid.reverse .f-visual{ order:initial; }
+    .feature-grid .f-visual{ order:-1; }
+    h1.hero-head{ font-size:40px; }
+    .stat-grid{ grid-template-columns:repeat(2,1fr); }
+    .uc-grid{ grid-template-columns:repeat(2,1fr); }
+    .nav-links{ display:none; }
+  }
+  @media (max-width:560px){
+    .stat-grid{ grid-template-columns:1fr; }
+    .uc-grid{ grid-template-columns:1fr; }
+    h1.hero-head{ font-size:34px; }
+    .hero{ padding:56px 0 48px; }
+  }
+
+  :focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="nav">
+    <a class="brand" href="#top">
+      <svg viewBox="0 0 100 100" fill="none"><rect width="100" height="100" rx="18" fill="#14181C"/><path d="M60 12 L26 56 L44 56 L38 90 L76 40 L52 40 Z" fill="#F4B41A"/></svg>
+      <span class="word">Wattz<b>GOAT</b></span>
+    </a>
+    <nav class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#use-cases">Use cases</a>
+      <a href="#quick-start">Quick start</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn-accent" href="https://github.com/wattzgoat/wattzgoat-web" target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.73.5.5 5.74.5 12.02c0 5.02 3.26 9.28 7.78 10.78.57.1.78-.25.78-.55 0-.27-.01-1.16-.02-2.1-3.17.69-3.84-1.35-3.84-1.35-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.68 1.25 3.33.95.1-.74.4-1.25.73-1.54-2.53-.29-5.19-1.27-5.19-5.63 0-1.24.44-2.26 1.17-3.06-.12-.29-.51-1.45.11-3.02 0 0 .96-.31 3.15 1.17.91-.25 1.89-.38 2.86-.38.97 0 1.95.13 2.86.38 2.18-1.48 3.14-1.17 3.14-1.17.63 1.57.23 2.73.11 3.02.73.8 1.17 1.82 1.17 3.06 0 4.37-2.67 5.33-5.21 5.62.41.36.78 1.06.78 2.14 0 1.54-.01 2.79-.01 3.17 0 .3.21.66.79.55A10.53 10.53 0 0 0 23.5 12c0-6.27-5.23-11.5-11.5-11.5Z"/></svg>
+        View on GitHub
+      </a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow">Open-source security training</p>
+        <h1 class="hero-head">A target that teaches you back.</h1>
+        <p class="hero-sub">WattzGOAT is a free, open-source, deliberately vulnerable electricity utility portal — 48 flags across 17 categories, each with guided hints and a side-by-side vulnerable-vs-fixed code view. Self-hosted, and built for the classroom, not production.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-dark" href="https://github.com/wattzgoat/wattzgoat-web" target="_blank" rel="noopener">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.73.5.5 5.74.5 12.02c0 5.02 3.26 9.28 7.78 10.78.57.1.78-.25.78-.55 0-.27-.01-1.16-.02-2.1-3.17.69-3.84-1.35-3.84-1.35-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.68 1.25 3.33.95.1-.74.4-1.25.73-1.54-2.53-.29-5.19-1.27-5.19-5.63 0-1.24.44-2.26 1.17-3.06-.12-.29-.51-1.45.11-3.02 0 0 .96-.31 3.15 1.17.91-.25 1.89-.38 2.86-.38.97 0 1.95.13 2.86.38 2.18-1.48 3.14-1.17 3.14-1.17.63 1.57.23 2.73.11 3.02.73.8 1.17 1.82 1.17 3.06 0 4.37-2.67 5.33-5.21 5.62.41.36.78 1.06.78 2.14 0 1.54-.01 2.79-.01 3.17 0 .3.21.66.79.55A10.53 10.53 0 0 0 23.5 12c0-6.27-5.23-11.5-11.5-11.5Z"/></svg>
+            View on GitHub
+          </a>
+          <a class="btn btn-outline" href="#quick-start">Quick start</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="chrome"><span></span><span></span><span></span></div>
+        <img src="assets/img/dashboard.png" alt="WattzGOAT customer dashboard showing a connected meter, usage chart, and recharge balance">
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="stats">
+    <div class="wrap stat-grid">
+      <div class="stat"><p class="val">48</p><p class="lbl">Flags to find</p></div>
+      <div class="stat"><p class="val">17</p><p class="lbl">Vulnerability categories</p></div>
+      <div class="stat"><p class="val">MIT</p><p class="lbl">Licensed &amp; open source</p></div>
+      <div class="stat"><p class="val">1</p><p class="lbl">Docker container, self-hosted</p></div>
+    </div>
+  </section>
+
+  <!-- Realism -->
+  <section class="feature" style="padding-top:8px;">
+    <div class="wrap">
+      <div class="f-text">
+        <p class="eyebrow">A real-looking target</p>
+        <h2>Styled like a real product, because that's the point</h2>
+        <p>Every page is built and restyled like an actual customer portal, not a bare lab with no design. The realism is part of the exercise — finding a vulnerability on something that looks finished is a lot closer to the real job than finding one on something that obviously isn't.</p>
+      </div>
+      <div class="f-visual">
+        <img src="assets/img/hero-login.png" alt="WattzGOAT login page with a styled marketing-style hero, a device readout, feature highlights, and a login form">
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features">
+    <div class="wrap"><hr class="divider"></div>
+
+    <div class="feature">
+      <div class="wrap">
+        <div class="f-text">
+          <p class="eyebrow">Guided mode</p>
+          <h2>A hint bar that meets you on the page you're stuck on</h2>
+          <p>Flip guided mode on and a bar docks to the bottom of whatever page someone's working through. It never gives the answer away — two hints per flag, a nudge first and a technique second — and it tracks how many flags are left on that page without naming which vulnerability they belong to. Each person switches it on for themselves, so a session can run with some people hinted and others working cold.</p>
+        </div>
+        <div class="f-visual">
+          <img src="assets/img/guided-mode.png" alt="Guided mode hint bar docked at the bottom of the Support page, showing a nudge-level hint and a button to reveal the next hint">
+        </div>
+      </div>
+    </div>
+
+    <div class="wrap"><hr class="divider"></div>
+
+    <div class="feature">
+      <div class="wrap">
+        <div class="f-text">
+          <p class="eyebrow">Code view</p>
+          <h2>See exactly what the fix looks like, not just that one exists</h2>
+          <p>Redeem a flag and its code unlocks on the Progress page — the vulnerable branch and the fixed branch, side by side, with the changed lines called out and a plain-language note on why the fix works. Every one of the 48 flags has an example in Python, JavaScript, and PHP, so the lesson isn't tied to one language or framework.</p>
+        </div>
+        <div class="f-visual">
+          <img src="assets/img/code-view.png" alt="Vulnerable and fixed code shown side by side for a SQL injection flag, with the vulnerable query highlighted in red and the parameterized fix highlighted in green">
+        </div>
+      </div>
+    </div>
+
+    <div class="wrap"><hr class="divider"></div>
+
+    <div class="feature">
+      <div class="wrap">
+        <div class="f-text">
+          <p class="eyebrow">Instructor mode</p>
+          <h2>Run the room without touching a terminal</h2>
+          <p>A separate dashboard lets whoever's running the session harden or re-break any flag live, watch a leaderboard update in real time, and reset the lab between groups — all from the browser, all while everyone stays on one shared instance. Export a CSV when you need a record afterward.</p>
+        </div>
+        <div class="f-visual">
+          <img src="assets/img/instructor.png" alt="Instructor dashboard showing flags hardened, total redemptions, active participants, and the guided mode control">
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Use cases -->
+  <section id="use-cases" class="usecases">
+    <div class="wrap">
+      <div class="usecases-head">
+        <p class="eyebrow">Built for</p>
+        <h2>Runs anywhere people are learning this hands-on</h2>
+        <p>One container, no shared infrastructure to coordinate — it fits however you're already running the session.</p>
+      </div>
+      <div class="uc-grid">
+        <div class="uc-card">
+          <div class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="3" x2="5" y2="22"/><polygon points="5,4 18,4 15,8 18,12 5,12"/></svg></div>
+          <h3>CTFs</h3>
+          <p>48 ready-made flags across 17 categories, each independently toggleable, so you control exactly how hard the board is.</p>
+        </div>
+        <div class="uc-card">
+          <div class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><line x1="5.6" y1="5.6" x2="9.2" y2="9.2"/><line x1="14.8" y1="14.8" x2="18.4" y2="18.4"/><line x1="18.4" y1="5.6" x2="14.8" y2="9.2"/><line x1="9.2" y1="14.8" x2="5.6" y2="18.4"/></svg></div>
+          <h3>Trainings &amp; workshops</h3>
+          <p>Guided mode and the code view do the explaining when you can't be at every screen at once.</p>
+        </div>
+        <div class="uc-card">
+          <div class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><polyline points="8,11 8,7 10,4 14,4 16,7 16,11"/></svg></div>
+          <h3>Corporate security teams</h3>
+          <p>Self-hosted and offline-friendly — nothing about the app or its data has to leave your network.</p>
+        </div>
+        <div class="uc-card">
+          <div class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8,6 2,12 8,18"/><polyline points="16,6 22,12 16,18"/></svg></div>
+          <h3>Classrooms &amp; courses</h3>
+          <p>Instructor mode gives one dashboard to a TA or professor for an entire section.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick start -->
+  <section id="quick-start" class="quickstart">
+    <div class="wrap qs-grid">
+      <div>
+        <p class="eyebrow on-dark">Quick start</p>
+        <h2>Running in one command</h2>
+        <p>If you've got Docker installed, this gets a standalone instance up with its own participant console and leaderboard. No database setup, no separate services.</p>
+        <a class="qs-link" href="https://github.com/wattzgoat/wattzgoat-web#readme" target="_blank" rel="noopener">Full setup instructions on GitHub →</a>
+      </div>
+      <pre class="code"><span class="cmt"># pulls the image and starts a standalone instance</span>
+docker run -d --name wattzgoat \
+  -p 5000:5000 -p 5001:5001 \
+  -e INSTANCE_HOST=127.0.0.1 \
+  -e STANDALONE=true \
+  -e STANDALONE_PASSWORD=<span class="flag">YourPasswordHere</span> \
+  ghcr.io/wattzgoat/wattzgoat-web:latest
+
+<span class="cmt"># then open</span>
+https://127.0.0.1:5000</pre>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site" id="contact">
+  <div class="wrap">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <svg viewBox="0 0 100 100" fill="none"><rect width="100" height="100" rx="18" fill="#14181C" stroke="rgba(255,255,255,0.15)"/><path d="M60 12 L26 56 L44 56 L38 90 L76 40 L52 40 Z" fill="#F4B41A"/></svg>
+        <span>Wattz<b>GOAT</b></span>
+      </div>
+      <div class="footer-links">
+        <a href="#features">Features</a>
+        <a href="#use-cases">Use cases</a>
+        <a href="#quick-start">Quick start</a>
+        <a href="https://github.com/wattzgoat/wattzgoat-web" target="_blank" rel="noopener">GitHub</a>
+        <a href="mailto:contact@wattzgoat.com">contact@wattzgoat.com</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 WattzGOAT. MIT licensed.</span>
+      <span>Built with AI assistance.</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
