@@ -129,6 +129,8 @@
   }
   .stat .val{ font-size:28px; font-weight:800; letter-spacing:-0.01em; }
   .stat .lbl{ margin-top:4px; font-size:14px; color:var(--gray-500); }
+  .stat-badge{ display:flex; align-items:center; min-height:72px; }
+  .stat-badge .val{ margin:0; }
 
   /* ---------- Features ---------- */
   .feature{ padding:64px 0; }
@@ -273,8 +275,8 @@
     <div class="wrap stat-grid">
       <div class="stat"><p class="val">48</p><p class="lbl">Flags to find</p></div>
       <div class="stat"><p class="val">17</p><p class="lbl">Vulnerability categories</p></div>
-      <div class="stat"><p class="val">MIT</p><p class="lbl">Licensed &amp; open source</p></div>
-      <div class="stat"><p class="val">1</p><p class="lbl">Docker container, self-hosted</p></div>
+      <div class="stat stat-badge"><p class="val">Open-Source</p></div>
+      <div class="stat stat-badge"><p class="val">Runs on Docker</p></div>
     </div>
   </section>
 
